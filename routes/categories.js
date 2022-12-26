@@ -25,7 +25,7 @@ const validate = (schema) => async(req, res, next) => {
 
 router.post("/new", validate(categorySchema), async (req, res) => {
 	const { body: brand } = req;
-	const duplicateCategory = await db.getDb().collection("productCategories").findOne({ name: brand.name });
+	const duplicateCategory = await db.getDb().collection("productCategories").findOne({ name: brand.name.trim() });
 	if(duplicateCategory) {
 		res.status(200).json({ status: 1, message: `The category with the name ${duplicateCategory.name} already exists.`, data: [] });
 	} else {
@@ -63,7 +63,7 @@ router.put("/deactivate", async (req, res) => {
 		const brand = await db.getDb().collection("productCategories").findOne({ _id: ObjectId(id) });
 		if(brand) {
 			if(brand.isActive) {
-				res.status(200).json({ status: 1, message: "Product brand is already inactive", data: [] })
+				res.status(200).json({ status: 1, message: "Product category is already inactive", data: [] })
 			} else {
 				await db.getDb().collection("productCategories").updateOne(
 					{ _id: ObjectId(id) },
@@ -72,10 +72,10 @@ router.put("/deactivate", async (req, res) => {
 						isActive: false
 					} }
 				)
-				res.status(200).json({ status: 1, message: "Product brand deactivated successfully", data: brand });
+				res.status(200).json({ status: 1, message: "Product category deactivated successfully", data: brand });
 			}
 		} else {
-			res.status(200).json({ status: 0, message: "Product brand with the provided ID not found ", data: [] });
+			res.status(200).json({ status: 0, message: "Product category with the provided ID not found ", data: [] });
 		}
 	} catch (error) {
 		console.log(error);
@@ -87,12 +87,12 @@ router.put("/deactivate", async (req, res) => {
 router.delete("/delete/:id", async (req, res) => {
 	const { id } = req.params;
 	try {
-		const brand = await db.getDb().collection("productCategories").findOne({ _id: ObjectId(id) });
-		if(brand) {
+		const category = await db.getDb().collection("productCategories").findOne({ _id: ObjectId(id) });
+		if(category) {
 			const deleteItem = await db.getDb().collection("productCategories").deleteOne({ _id: ObjectId(id) });
-			res.status(200).json({ status: 1, message: "Product brand deleted successfully", data: deleteItem });
+			res.status(200).json({ status: 1, message: "Product category deleted successfully", data: deleteItem });
 		} else {
-			res.status(200).json({ status: 0, message: "Product brand with the provided ID not found ", data: [] });
+			res.status(200).json({ status: 0, message: "Product category with the provided ID not found ", data: [] });
 		}
 	} catch (error) {
 		console.log(error);

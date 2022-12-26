@@ -17,7 +17,7 @@ const validate = (schema) => async(req, res, next) => {
 router.post("/register", validate(userSchema), async (req, res) => {
 	const { body } = req;
 	const hashedPassword = CryptoJS.AES.encrypt(body.passcode, ENCRYPTION_KEY).toString();
-	const duplicateUser = await db.getDb().collection("users").find({ username: req.body.username }).toArray();
+	const duplicateUser = await db.getDb().collection("users").find({ username: req.body.username.trim() }).toArray();
 	try {
 		if(duplicateUser?.length > 0) {
 			const { username } = duplicateUser[0];

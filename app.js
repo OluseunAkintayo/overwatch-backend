@@ -27,6 +27,8 @@ const userRoute = require('./routes/user');
 const productsRoute = require('./routes/products');
 const brandsRoute = require('./routes/brands');
 const categoriesRoute = require('./routes/categories');
+const vendorsRoute = require('./routes/vendors');
+const storeRoute = require('./routes/store');
 const authRoute = require('./routes/auth');
 
 // view engine setup
@@ -44,6 +46,8 @@ app.use('/api/users', userRoute);
 app.use('/api/products', productsRoute);
 app.use('/api/products/brands', brandsRoute);
 app.use('/api/products/categories', categoriesRoute);
+app.use('/api/store/vendors', vendorsRoute);
+app.use('/api/store', storeRoute);
 app.use('/api/auth', authRoute);
 
 app.get("/api", (req, res) => {

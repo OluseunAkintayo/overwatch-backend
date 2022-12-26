@@ -25,7 +25,7 @@ const validate = (schema) => async(req, res, next) => {
 
 router.post("/new", validate(brandSchema), async (req, res) => {
 	const { body: brand } = req;
-	const duplicateBrand = await db.getDb().collection("productBrands").findOne({ name: brand.name });
+	const duplicateBrand = await db.getDb().collection("productBrands").findOne({ name: brand.name.trim() });
 	if(duplicateBrand) {
 		res.status(200).json({ status: 1, message: `Brand with the name ${duplicateBrand.name} already exists.`, data: [] });
 	} else {
