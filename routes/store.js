@@ -23,7 +23,9 @@ router.post("/new-supply", validate(storeSchema), async (req, res) => {
 					$set: { 
 						quantity: product.quantity ? product.quantity + item.quantity : item.quantity,
 						pricing: { cost: item.pricing.cost, retail: product.pricing.retail },
-						inStock: product.inStock ? product.inStock : true
+						expiryDate: product.expiryDate,
+						inStock: true,
+						modifiedAt: new Date().toISOString()
 					}
 				}
 			)

@@ -16,28 +16,27 @@ router.post('/login', async(req, res) => {
 			if(password === req.body.passcode) {
 				const { passcode, isActive, createdAt, modifiedAt, id, ...userProps  } = user;
 				const token = jwt.sign(
-					{ id: user._id, isAdmin: user.designation.includes('Admin') },
+					{ id: user._id, isAdmin: user.designation.includes('admin') },
 					TOKEN_KEY,
 					{ algorithm: 'HS512' },
 					{ expiresIn: '1d' }
 				);
-				const now = new Date();
 				const tokenExpiryDate = dayjs().add(1, 'day');
-				const tokenExpiryDateString = dayjs(tokenExpiryDate).format("DD/MM/YYYY HH:MM:ss");
 				res.status(200).json({
 					status: 1,
 					message: "Login successful",
 					user: userProps,
 					token: token,
-					expiresIn: tokenExpiryDateString
+					tokenExpiryDate
 				 });
 			} else {
-				res.status(200).json({ status: 0, message: "Incorrect password provided", data: {} });
+				res.status(200).json({ status: 0, message: "Incorrect password", data: {} });
 			}
 		} else {
-			res.status(200).json({ status: 0, message: "User not found", data: {} });
+			res.status(200).json({ status: 0, message: "Incorrect username.", data: {} });
 		}
 	} catch (error) {
+		console.log(error);
 		res.status(500).json({ status: 0, message: "Error signing in!", data: error });
 	}
 });

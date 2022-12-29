@@ -4,11 +4,8 @@ const app = require('express')();
 console.log(app.settings.env);
 
 const connectionUrl = "mongodb://localhost:27017";
+// const connectionUrl = process.env.DB_URL;
 
-// const client = new MongoClient(process.env.DB_URL, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// });
 const client = new MongoClient(connectionUrl, {
   useNewUrlParser: true,
   useUnifiedTopology: true,

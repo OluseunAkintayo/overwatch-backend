@@ -104,7 +104,7 @@ router.put("/delete/:id", async (req, res) => {
 		}
 	} catch (error) {
 		console.log(error);
-		res.status(500).json({ status: 0, message: "Update operation failed", data: error });
+		res.status(500).json({ status: 0, message: "Update operation failed", data: JSON.stringify(error) });
 	}
 });
 // router.put("/delete/:id", async (req, res) => {

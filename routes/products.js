@@ -2,8 +2,10 @@ const router = require('express').Router();
 const { ObjectId } = require('mongodb');
 const db = require("../connect/connect");
 const productSchema = require('../models/ProductSchema');
+const { checkTokenAdmin } = require('./checkToken');
 
 router.get("/list", async (req, res) => {
+	// console.log(res.user);
 	try {
 		const products = await db.getDb().collection("products").find({}).toArray();
 		res.status(200).json({ success: true, data: products });
@@ -14,7 +16,6 @@ router.get("/list", async (req, res) => {
 
 router.get("/one", async (req, res) => {
 	const { id } = req.body;
-	console.log(ObjectId(id));
 	try {
 		const product = await db.getDb().collection("products").findOne({ _id: ObjectId(id) });
 		res.status(200).json({ status: 1, data: product });

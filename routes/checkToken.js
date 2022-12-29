@@ -3,19 +3,19 @@ const jwt = require('jsonwebtoken');
 const { TOKEN_KEY } = process.env;
 
 const check = (req, res, next) => {
-	const header = req.headers.authorization;
-	if(header) {
-		const token = header.split(' ')[1];
+	const authToken = req.headers.authorization;
+	if(authToken) {
+		const token = authToken.split(' ')[1];
 		jwt.verify(token, TOKEN_KEY, (err, user) => {
 			if(err) {
-				res.status(403).json({ status: 0, message: "Invalid token" });
+				res.status(403).json({ status: 0, message: "Unauthorized access: invalid token" });
 			} else {
 				req.user = user;
 				next();
 			}
 		})
 	} else {
-		res.status(401).json({ status: 0, message: "Unauthorized access" });
+		res.status(401).json({ status: 0, message: "Unauthorized access: token not found" });
 	}
 }
 
@@ -24,7 +24,7 @@ const checkToken = (req, res, next) => {
     if(req.user.id === req.params.id || req.user.isAdmin) {
       next();
     } else {
-      res.status(403).json({ status: 0, message: "Unauthorized access"	});
+      res.status(403).json({ status: 0, message: "Unauthorized access: provided token not valid for specified user or the user is not an admin."	});
     }
   });
 }
@@ -34,7 +34,7 @@ const checkTokenAdmin = (req, res, next) => {
     if(req.user.isAdmin) {
       next();
     } else {
-      res.status(403).json({ status: 0, message: "Unauthorized access" });
+      res.status(403).json({ status: 0, message: "Unauthorized access: user is not an admin" });
     }
   });
 }
