@@ -30,6 +30,7 @@ const categoriesRoute = require('./routes/categories');
 const vendorsRoute = require('./routes/vendors');
 const storeRoute = require('./routes/store');
 const transactionsRoute = require('./routes/transactions');
+const settingsRoute = require('./routes/settings');
 const authRoute = require('./routes/auth');
 
 // view engine setup
@@ -51,6 +52,7 @@ app.use('/api/store/vendors', vendorsRoute);
 app.use('/api/store', storeRoute);
 app.use('/api/transactions', transactionsRoute);
 app.use('/api/auth', authRoute);
+app.use('/api/org/settings', settingsRoute);
 
 app.get("/api", (req, res) => {
   res.send({ status: 200, message: "API works!" });

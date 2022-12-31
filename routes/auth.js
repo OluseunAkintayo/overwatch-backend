@@ -16,7 +16,12 @@ router.post('/login', async(req, res) => {
 			if(password === req.body.passcode) {
 				const { passcode, isActive, createdAt, modifiedAt, id, ...userProps  } = user;
 				const token = jwt.sign(
-					{ id: user._id, isAdmin: user.designation.includes('admin') },
+					{
+						id: user._id,
+						isCashier: user.designation.includes('cashier'),
+						isAdmin: user.designation.includes('admin'),
+						isSuperAdmin: user.designation.includes('superAdmin')
+					},
 					TOKEN_KEY,
 					{ algorithm: 'HS512' },
 					{ expiresIn: '1d' }

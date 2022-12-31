@@ -2,6 +2,8 @@ const router = require('express').Router();
 const userSchema = require('../models/UserSchema');
 const db = require("../connect/connect");
 const CryptoJS = require('crypto-js');
+const { check } = require('./checkToken');
+const { ObjectId } = require('mongodb');
 
 const { ENCRYPTION_KEY } = process.env;
 
@@ -36,5 +38,16 @@ router.post("/register", validate(userSchema), async (req, res) => {
 		res.status(500).json({ status: 0, message: "A fatal error has ocurred", data: error });
 	}
 });
+
+router.get("/profile", check, async (req, res) => {
+	const { id } = req.user;
+	try {
+		const user = await db.getDb().collection("users").findOne({ _id: ObjectId(id) });
+		const { id: userId, passcode, createdAt, modifiedAt, ...userProps } = user;
+		res.status(200).json({ status: 1, data: userProps });
+	} catch (error) {
+		res.status(500).json({ status: 0, message: "Error retrieving user", data: JSON.stringify(error) });
+	}
+})
 
 module.exports = router;

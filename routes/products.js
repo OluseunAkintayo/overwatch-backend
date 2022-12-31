@@ -4,13 +4,13 @@ const db = require("../connect/connect");
 const productSchema = require('../models/ProductSchema');
 const { checkTokenAdmin } = require('./checkToken');
 
-router.get("/list", async (req, res) => {
+router.get("/list", checkTokenAdmin, async (req, res) => {
 	// console.log(res.user);
 	try {
 		const products = await db.getDb().collection("products").find({}).toArray();
-		res.status(200).json({ success: true, data: products });
+		res.status(200).json({ status: 1, data: products });
 	} catch (error) {
-		res.status(500).json({ success: false, data: error });
+		res.status(500).json({ status: 0, data: error });
 	}
 });
 
@@ -35,7 +35,6 @@ const validate = (schema) => async(req, res, next) => {
 }
 router.post("/new", validate(productSchema), async (req, res) => {
 	const { body: product } = req;
-	console.log("Validation completed");
 	await db.getDb().collection("products").insertOne(product, (err, result) => {
 		err ? res.status(500).json({ status: 0, message: "Error creating new product", data: err })
 		: res.status(201).json({ status: 1, message: "Product created successfully", data: result });
