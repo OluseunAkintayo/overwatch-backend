@@ -2,10 +2,7 @@ const router = require('express').Router();
 const transactionSchema = require('../models/transactionSchema');
 const db = require('../connect/connect');
 const { ObjectId } = require('mongodb');
-const uuid = require('short-uuid');
-const { checkToken } = require('./checkToken');
-
-const id = uuid().uuid();
+const { checkToken, checkTokenAdmin } = require('./checkToken');
 
 const validate = schema => async(req, res, next) => {
 	try {
@@ -44,7 +41,6 @@ router.post("/order", checkToken, validate(transactionSchema), async (req, res, 
 			});
 			const currentTransaction = {
 				...transaction,
-				transactionId: id,
 				user: user.firstName + " " + user.lastName
 			}
 			await db.getDb().collection("transactions").insertOne(currentTransaction, (err, result) => {
@@ -59,5 +55,14 @@ router.post("/order", checkToken, validate(transactionSchema), async (req, res, 
 		throw error;
 	}
 });
+
+router.get("/sales", checkTokenAdmin, async (req, res) => {
+	try {
+		const transactions = await db.getDb().collection("transactions").find().toArray();
+		res.status(200).json({ status: 1, data: transactions });
+	} catch (error) {
+		res.status(500).json({ status: 0, message: "Error retrieving report", data: JSON.stringify(error) });
+	}
+})
 
 module.exports = router;
