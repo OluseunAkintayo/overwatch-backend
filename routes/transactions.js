@@ -13,7 +13,7 @@ const validate = schema => async(req, res, next) => {
 	}
 }
 
-router.post("/order", checkToken, validate(transactionSchema), async (req, res, next) => {
+router.post("/new-sale", checkToken, validate(transactionSchema), async (req, res, next) => {
 	const { body: transaction, user: userId } = req;
 	const user = await db.getDb().collection("users").findOne({ _id: ObjectId(userId.id) });
 	let check = [];
@@ -39,10 +39,7 @@ router.post("/order", checkToken, validate(transactionSchema), async (req, res, 
 					}
 				);
 			});
-			const currentTransaction = {
-				...transaction,
-				user: user.firstName + " " + user.lastName
-			}
+			const currentTransaction = { ...transaction, user: user.firstName + " " + user.lastName };
 			await db.getDb().collection("transactions").insertOne(currentTransaction, (err, result) => {
 				err ? res.status(500).json({ status: 0, message: "Server error", data: err })
 				: res.status(201).json({ status: 1, message: "Transaction completed!", data: result });

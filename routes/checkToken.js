@@ -1,3 +1,4 @@
+const dayjs = require('dayjs');
 const jwt = require('jsonwebtoken');
 
 const { TOKEN_KEY } = process.env;
@@ -6,18 +7,23 @@ const check = (req, res, next) => {
 	const authToken = req.headers.authorization;
 	if(authToken) {
 		const token = authToken.split(' ')[1];
-		jwt.verify(token, TOKEN_KEY, (err, user) => {
+		jwt.verify(token, TOKEN_KEY, (err, decodedToken) => {
 			if(err) {
 				res.status(403).json({ status: 0, message: "Unauthorized access: invalid token" });
 			} else {
-				req.user = user;
-				next();
+				if(dayjs(decodedToken.exp) > dayjs()) {
+					req.user = decodedToken;
+					next();
+				} else {
+					res.status(401).json({ status: 0, message: "Token expired" });
+				}
 			}
-		})
+		});
 	} else {
 		res.status(401).json({ status: 0, message: "Unauthorized access: token not found" });
 	}
 }
+
 
 const checkToken = (req, res, next) => {
 	check(req, res, () => {

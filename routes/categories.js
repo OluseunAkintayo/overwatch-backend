@@ -2,9 +2,10 @@ const router = require('express').Router();
 const { ObjectId } = require('mongodb');
 const db = require('../connect/connect');
 const { categorySchema } = require('../models/CategorySchema');
+const { checkTokenAdmin } = require('./checkToken');
 
 // get all brands
-router.get("/list", async (req, res) => {
+router.get("/", checkTokenAdmin, async (req, res) => {
 	try {
 		const categories = await db.getDb().collection("productCategories").find().toArray();
 		res.status(200).json({ status: 1, message: "Items retrieved successfully", data: categories });
@@ -23,13 +24,13 @@ const validate = (schema) => async(req, res, next) => {
 	}
 }
 
-router.post("/new", validate(categorySchema), async (req, res) => {
-	const { body: brand } = req;
-	const duplicateCategory = await db.getDb().collection("productCategories").findOne({ name: brand.name.trim() });
+router.post("/", validate(categorySchema), async (req, res) => {
+	const { body: category } = req;
+	const duplicateCategory = await db.getDb().collection("productCategories").findOne({ name: category.name.trim() });
 	if(duplicateCategory) {
-		res.status(200).json({ status: 1, message: `The category with the name ${duplicateCategory.name} already exists.`, data: [] });
+		res.status(200).json({ status: 0, message: `The category with the name ${duplicateCategory.name} already exists.` });
 	} else {
-		await db.getDb().collection("productCategories").insertOne(brand, (err, result) => {
+		await db.getDb().collection("productCategories").insertOne(category, (err, result) => {
 			err ? res.status(500).json({ status: 0, message: "Error creating new category", data: err })
 			: res.status(201).json({ status: 1, message: "Product category created successfully", data: result });
 		});
@@ -57,20 +58,21 @@ router.put("/update/:id", validate(categorySchema), async (req, res) => {
 });
 
 // deactivate brand
-router.put("/deactivate", async (req, res) => {
-	const { id } = req.body;
+router.put("/deactivate/:id", async (req, res) => {
+	const { id } = req.params;
 	try {
 		const brand = await db.getDb().collection("productCategories").findOne({ _id: ObjectId(id) });
 		if(brand) {
-			if(brand.isActive) {
+			if(!brand.isActive) {
 				res.status(200).json({ status: 1, message: "Product category is already inactive", data: [] })
 			} else {
 				await db.getDb().collection("productCategories").updateOne(
 					{ _id: ObjectId(id) },
 					{ $set: {
 						...req.body,
-						isActive: false
-					} }
+						isActive: false,
+						markedForDeletion: true
+					}}
 				)
 				res.status(200).json({ status: 1, message: "Product category deactivated successfully", data: brand });
 			}

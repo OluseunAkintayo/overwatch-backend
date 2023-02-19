@@ -4,8 +4,7 @@ const db = require("../connect/connect");
 const productSchema = require('../models/ProductSchema');
 const { checkTokenAdmin } = require('./checkToken');
 
-router.get("/list", checkTokenAdmin, async (req, res) => {
-	// console.log(res.user);
+router.get("/", checkTokenAdmin, async (req, res) => {
 	try {
 		const products = await db.getDb().collection("products").find({}).toArray();
 		res.status(200).json({ status: 1, data: products });
@@ -33,7 +32,8 @@ const validate = (schema) => async(req, res, next) => {
 		res.status(400).json({ status: 0, type: error.name, message: error.message });
 	}
 }
-router.post("/new", validate(productSchema), async (req, res) => {
+
+router.post("/", validate(productSchema), async (req, res) => {
 	const { body: product } = req;
 	await db.getDb().collection("products").insertOne(product, (err, result) => {
 		err ? res.status(500).json({ status: 0, message: "Error creating new product", data: err })
@@ -53,7 +53,7 @@ router.put("/update/:id", validate(productSchema), async (req, res) => {
 					...req.body,
 				} }
 			)
-			res.json({ status: 1, data: updateItem });
+			res.json({ status: 1, message: 'Product updated successfully', data: updateItem });
 		} else {
 			res.json({ status: 0, data: "Item with the provided ID not found "});
 		}
@@ -74,19 +74,45 @@ router.put("/deactivate", async (req, res) => {
 			} else {
 				await db.getDb().collection("products").updateOne(
 					{ _id: ObjectId(id) },
-					{ $set: {
-						...req.body,
-						isActive: false
-					} }
+					{$set: {
+						isActive: false,
+					}}
 				)
-				res.json({ status: 1, message: "Product deactivated successfully", data: product });
+				res.json({ status: 1, message: "Product deactivated successfully" });
 			}
 		} else {
-			res.json({ status: 0, message: "Item with the provided ID not found ", data: [] });
+			res.json({ status: 0, message: "Item with the provided ID not found " });
 		}
 	} catch (error) {
 		console.log(error);
-		res.status(500).json({ status: 0, message: "Update operation failed", data: error });
+		res.status(500).json({ status: 0, message: "Update operation failed" });
+	}
+});
+
+// delete item
+router.put("/delete", async (req, res) => {
+	const { id } = req.body;
+	try {
+		const product = await db.getDb().collection("products").findOne({ _id: ObjectId(id) });
+		if(product) {
+			if(product.markedForDeletion) {
+				res.json({ status: 0, message: "Operation not allowed", data: [] })
+			} else {
+				await db.getDb().collection("products").updateOne(
+					{ _id: ObjectId(id) },
+					{ $set: {
+						isActive: false,
+						markedForDeletion: true
+					}}
+				)
+				res.json({ status: 1, message: "Product deleted successfully", data: product });
+			}
+		} else {
+			res.json({ status: 0, message: "Product with the provided ID not found ", data: [] });
+		}
+	} catch (error) {
+		console.log(error);
+		res.status(500).json({ status: 0, message: "Delete operation failed", data: error });
 	}
 });
 

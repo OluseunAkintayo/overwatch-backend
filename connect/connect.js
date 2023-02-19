@@ -1,8 +1,6 @@
 const { MongoClient } = require("mongodb");
 const app = require('express')();
 
-console.log(app.settings.env);
-
 const connectionUrl = "mongodb://localhost:27017";
 // const connectionUrl = process.env.DB_URL;
 

@@ -2,9 +2,10 @@ const router = require('express').Router();
 const { ObjectId } = require('mongodb');
 const db = require('../connect/connect');
 const brandSchema = require('../models/BrandsSchema');
+const { checkTokenAdmin } = require('./checkToken');
 
 // get all brands
-router.get("/list", async (req, res) => {
+router.get("/", checkTokenAdmin, async (req, res) => {
 	try {
 		const brands = await db.getDb().collection("productBrands").find().toArray();
 		res.status(200).json({ status: 1, message: "Brands retrieved successfully", data: brands });
@@ -23,7 +24,7 @@ const validate = (schema) => async(req, res, next) => {
 	}
 }
 
-router.post("/new", validate(brandSchema), async (req, res) => {
+router.post("/", checkTokenAdmin, validate(brandSchema), async (req, res) => {
 	const { body: brand } = req;
 	const duplicateBrand = await db.getDb().collection("productBrands").findOne({ name: brand.name.trim() });
 	if(duplicateBrand) {
@@ -37,7 +38,7 @@ router.post("/new", validate(brandSchema), async (req, res) => {
 });
 
 // modify brand
-router.put("/update/:id", validate(brandSchema), async (req, res) => {
+router.put("/update/:id", checkTokenAdmin, validate(brandSchema), async (req, res) => {
 	const { id } = req.params;
 	try {
 		const brand = await db.getDb().collection("productBrands").findOne({ _id: ObjectId(id) });
@@ -59,25 +60,26 @@ router.put("/update/:id", validate(brandSchema), async (req, res) => {
 });
 
 // deactivate brand
-router.put("/deactivate", async (req, res) => {
-	const { id } = req.body;
+router.put("/deactivate/:id", checkTokenAdmin, async (req, res) => {
+	const { id } = req.params;
 	try {
 		const brand = await db.getDb().collection("productBrands").findOne({ _id: ObjectId(id) });
 		if(brand) {
-			if(brand.isActive) {
-				res.status(200).json({ status: 1, message: "Product brand is already inactive", data: [] })
+			if(!brand.isActive) {
+				res.status(200).json({ status: 0, message: "Product brand is already inactive", data: [] })
 			} else {
 				await db.getDb().collection("productBrands").updateOne(
 					{ _id: ObjectId(id) },
 					{ $set: {
 						...req.body,
-						isActive: false
+						isActive: false,
+						markedForDeletion: true
 					} }
 				)
-				res.status(200).json({ status: 1, message: "Product brand deactivated successfully", data: brand });
+				res.status(200).json({ status: 1, message: "Product brand deleted successfully" });
 			}
 		} else {
-			res.status(200).json({ status: 0, message: "Product brand with the provided ID not found ", data: [] });
+			res.status(200).json({ status: 0, message: "Product brand with the provided ID not found" });
 		}
 	} catch (error) {
 		console.log(error);
@@ -86,7 +88,7 @@ router.put("/deactivate", async (req, res) => {
 });
 
 // delete brand
-router.delete("/delete/:id", async (req, res) => {
+router.delete("/delete/:id", checkTokenAdmin, async (req, res) => {
 	const { id } = req.params;
 	try {
 		const brand = await db.getDb().collection("productBrands").findOne({ _id: ObjectId(id) });
