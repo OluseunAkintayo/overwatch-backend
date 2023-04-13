@@ -24,7 +24,6 @@ const check = (req, res, next) => {
 	}
 }
 
-
 const checkToken = (req, res, next) => {
 	check(req, res, () => {
     if(req.user.id === req.params.id || req.user.isAdmin || req.user.isSuperAdmin) {

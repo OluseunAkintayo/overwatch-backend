@@ -2,7 +2,7 @@ const router = require('express').Router();
 const userSchema = require('../models/UserSchema');
 const db = require("../connect/connect");
 const CryptoJS = require('crypto-js');
-const { check } = require('./checkToken');
+const { check, checkTokenAdmin } = require('./checkToken');
 const { ObjectId } = require('mongodb');
 
 const { ENCRYPTION_KEY } = process.env;
@@ -47,6 +47,20 @@ router.get("/profile", check, async (req, res) => {
 		res.status(200).json({ status: 1, data: userProps });
 	} catch (error) {
 		res.status(500).json({ status: 0, message: "Error retrieving user", data: JSON.stringify(error) });
+	}
+})
+
+// get all users - lite
+router.get("/lite", checkTokenAdmin, async (req, res) => {
+	try {
+		const users = await db.getDb().collection("users").find().toArray();
+		let newUsers = users.map(item => {
+			const { _id, firstName, lastName } = item;
+			return { _id, name: firstName + " " + lastName };
+		});
+		res.status(200).json({ status: 1, data: newUsers });
+	} catch (error) {
+		res.status(500).json({ status: 0, message: "Error retrieving users", data: JSON.stringify(error) });
 	}
 })
 

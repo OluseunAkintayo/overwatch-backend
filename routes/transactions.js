@@ -13,11 +13,11 @@ const validate = schema => async(req, res, next) => {
 	}
 }
 
-router.post("/new-sale", checkToken, validate(transactionSchema), async (req, res, next) => {
+router.post("/new-sale", checkToken, async (req, res, next) => {
 	const { body: transaction, user: userId } = req;
+	const { customerName, transactionId, transactionDate, products, transactionType } = transaction;
 	const user = await db.getDb().collection("users").findOne({ _id: ObjectId(userId.id) });
 	let check = [];
-	const products = transaction.products;
 	for(i = 0; i < products.length; i++) {
 		let item = await db.getDb().collection("products").findOne({ _id: ObjectId(products[i]._id) });
 		if(item.quantity < products[i].orderQty) {
@@ -38,6 +38,9 @@ router.post("/new-sale", checkToken, validate(transactionSchema), async (req, re
 						}
 					}
 				);
+				const { _id, ...props } = item;
+				const { passcode, designation, isActive, createdAt, modifiedAt, ...userProps } = user;
+				await db.getDb().collection("productReport").insertOne({ ...props, productId: _id, transactionId, transactionDate, transactionType, customer: customerName, user: userProps });
 			});
 			const currentTransaction = { ...transaction, user: user.firstName + " " + user.lastName };
 			await db.getDb().collection("transactions").insertOne(currentTransaction, (err, result) => {
@@ -49,7 +52,6 @@ router.post("/new-sale", checkToken, validate(transactionSchema), async (req, re
 		}
 	} catch (error) {
 		res.json({ status: 0, message: "error", data: error });
-		throw error;
 	}
 });
 
